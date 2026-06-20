@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Drop a link. Get a page worth printing. — a tweet-to-print reading companion.",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
