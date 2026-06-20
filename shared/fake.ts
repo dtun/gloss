@@ -2,12 +2,13 @@ import { handleFromUrl, normalizeInput } from "./gloss.ts";
 import { READING_LIST } from "./readingList.ts";
 import type { Book, GlossInput, GlossResult } from "./types.ts";
 
-/** First sentence (or a trimmed slice) of the pasted text, for the idea field. */
-function firstSentence(text: string): string {
-  const trimmed = text.replace(/\s+/g, " ").trim();
-  const end = trimmed.search(/[.!?]\s/);
-  const candidate = end === -1 ? trimmed : trimmed.slice(0, end + 1);
-  return candidate.length > 200 ? `${candidate.slice(0, 197)}…` : candidate;
+/** Split text into sentences, trimmed and non-empty. */
+function sentences(text: string): string[] {
+  return text
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** Deterministically pick `n` books seeded by the input, with no repeats. */
@@ -24,26 +25,31 @@ function pickBooks(seed: string, n: number, list: Book[]): Book[] {
 
 /**
  * A deterministic stand-in for the Anthropic call. Returns a real, shaped
- * GlossResult drawn from the actual shelf — so the app, and the e2e suite, run
- * end-to-end with no API key. Enabled by GLOSS_FAKE_LLM=1 on the server.
+ * GlossResult — a TL;DR, a few key points, and a couple of related reads — so
+ * the app and the e2e suite run end-to-end with no API key. Enabled by
+ * GLOSS_FAKE_LLM=1 on the server.
  */
 export function fakeGloss(input: GlossInput): GlossResult {
   const { text, url } = normalizeInput(input);
   const seed = `${text ?? ""}|${url ?? ""}`;
-  const idea = text
-    ? firstSentence(text)
-    : `A link with no pasted text (${url}) — paste the thread for a sharper read.`;
 
-  const books = pickBooks(seed, 3, READING_LIST);
-  const picks = books.map((book) => ({
+  const parts = text ? sentences(text) : [];
+  const tldr =
+    parts[0] ?? `A link with no pasted text (${url}) — paste the post for a real summary.`;
+  const keyPoints = (parts.length > 1 ? parts.slice(0, 5) : [tldr]).map((s) =>
+    s.length > 160 ? `${s.slice(0, 157)}…` : s,
+  );
+
+  const relatedReads = pickBooks(seed, 2, READING_LIST).map((book) => ({
     title: book.title,
     author: book.author,
-    why: `Speaks to this directly: ${book.themes[0]}.`,
+    why: book.themes[0],
   }));
 
   return {
-    idea,
+    tldr,
+    keyPoints,
     attribution: { handle: handleFromUrl(url), date: null, source: url ?? null },
-    picks,
+    relatedReads,
   };
 }

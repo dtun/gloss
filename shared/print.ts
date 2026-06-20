@@ -16,22 +16,32 @@ export function formatAttribution(result: GlossResult): string {
 }
 
 /**
- * Build a standalone, self-contained HTML document for the print sheet —
- * letter size, no app chrome, ready to open in a new tab and print. Pure and
- * dependency-free so it can be unit tested and opened via a blob URL.
+ * Build a standalone, self-contained HTML document for the print sheet — a
+ * single letter page, summary-first, no app chrome. Pure and dependency-free so
+ * it can be unit tested and opened via a blob URL.
  */
 export function buildPrintHtml(result: GlossResult): string {
   const attribution = formatAttribution(result);
-  const picks = result.picks
-    .map(
-      (pick) => `
-        <li class="pick">
-          <div class="pick-title">${escapeHtml(pick.title)}</div>
-          <div class="pick-author">${escapeHtml(pick.author)}</div>
-          <p class="pick-why">${escapeHtml(pick.why)}</p>
-        </li>`,
-    )
-    .join("");
+
+  const keyPoints = result.keyPoints
+    .map((point) => `<li>${escapeHtml(point)}</li>`)
+    .join("\n          ");
+
+  const related = result.relatedReads.length
+    ? `
+      <section class="related">
+        <div class="label">Related reading</div>
+        <ul class="reads">${result.relatedReads
+          .map(
+            (read) => `
+          <li><span class="read-book">${escapeHtml(read.title)}</span> <span class="read-author">— ${escapeHtml(
+            read.author,
+          )}</span><span class="read-why"> · ${escapeHtml(read.why)}</span></li>`,
+          )
+          .join("")}
+        </ul>
+      </section>`
+    : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -45,44 +55,40 @@ export function buildPrintHtml(result: GlossResult): string {
     html, body { margin: 0; padding: 0; background: #fff; color: #1a1a1a; }
     body {
       font-family: Georgia, "Times New Roman", serif;
-      line-height: 1.5;
+      line-height: 1.45;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .sheet { max-width: 7.5in; margin: 0 auto; padding: 0.9in 0.75in; }
+    .sheet { max-width: 7in; margin: 0 auto; padding: 0.8in 0.75in; }
     .masthead {
       display: flex; align-items: baseline; justify-content: space-between;
-      border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 28px;
+      border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 22px;
     }
     .wordmark { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
     .wordmark-sub { font-size: 11px; color: #6b6b6b; font-style: italic; }
-    .columns { display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; }
     .label {
       font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
       font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-      text-transform: uppercase; color: #8a8a8a; margin-bottom: 10px;
+      text-transform: uppercase; color: #8a8a8a; margin-bottom: 8px;
     }
-    .idea { font-size: 19px; line-height: 1.45; margin: 0 0 18px; }
+    .tldr { font-size: 20px; line-height: 1.4; font-weight: 700; margin: 0 0 6px; }
     .attribution {
-      font-size: 12px; color: #6b6b6b; font-style: italic;
-      border-top: 0.5px solid #d8d8d8; padding-top: 10px;
+      font-size: 12px; color: #6b6b6b; font-style: italic; margin: 0 0 22px;
     }
-    ul.picks { list-style: none; margin: 0; padding: 0; }
-    li.pick { padding: 0 0 16px; margin-bottom: 16px; border-bottom: 0.5px solid #e2e2e2; }
-    li.pick:last-child { border-bottom: none; margin-bottom: 0; }
-    .pick-title { font-size: 15px; font-weight: 700; }
-    .pick-author {
-      font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
-      font-size: 11px; color: #8a8a8a; margin-bottom: 6px;
-    }
-    .pick-why { font-size: 13.5px; margin: 0; }
+    .points { margin: 0 0 24px; padding-left: 1.1em; }
+    .points li { font-size: 14.5px; line-height: 1.5; margin-bottom: 8px; }
+    .related { border-top: 0.5px solid #d8d8d8; padding-top: 14px; }
+    ul.reads { list-style: none; margin: 0; padding: 0; }
+    ul.reads li { font-size: 12.5px; line-height: 1.5; margin-bottom: 5px; }
+    .read-book { font-weight: 700; }
+    .read-author { color: #6b6b6b; }
+    .read-why { color: #4a4a4a; font-style: italic; }
     footer {
-      margin-top: 36px; padding-top: 10px; border-top: 0.5px solid #d8d8d8;
+      margin-top: 28px; padding-top: 10px; border-top: 0.5px solid #d8d8d8;
       font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
       font-size: 10px; color: #a0a0a0; text-align: center;
     }
     @page { size: letter; margin: 0; }
-    @media print { .sheet { padding: 0.9in 0.75in; } }
   </style>
 </head>
 <body>
@@ -91,18 +97,15 @@ export function buildPrintHtml(result: GlossResult): string {
       <span class="wordmark">Gloss</span>
       <span class="wordmark-sub">a page worth printing</span>
     </div>
-    <div class="columns">
-      <section>
-        <div class="label">The idea</div>
-        <p class="idea">${escapeHtml(result.idea)}</p>
-        ${attribution ? `<div class="attribution">${escapeHtml(attribution)}</div>` : ""}
-      </section>
-      <section>
-        <div class="label">From your shelf</div>
-        <ul class="picks">${picks}
-        </ul>
-      </section>
-    </div>
+
+    <div class="label">Summary</div>
+    <p class="tldr">${escapeHtml(result.tldr)}</p>
+    ${attribution ? `<p class="attribution">${escapeHtml(attribution)}</p>` : ""}
+
+    <ul class="points">
+          ${keyPoints}
+    </ul>
+${related}
     <footer>Generated by Gloss · gloss.so</footer>
   </main>
 </body>

@@ -124,9 +124,6 @@
 }
 
 .sheet {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 36px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -142,61 +139,60 @@
   margin: 0 0 12px;
 }
 
-.idea {
+.tldr {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 19px;
-  line-height: 1.5;
-  margin: 0 0 16px;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 6px;
 }
 
 .attribution {
   font-size: 13px;
   font-style: italic;
   color: var(--ink-soft);
-  border-top: 0.5px solid var(--border);
-  padding-top: 10px;
-  margin: 0;
+  margin: 0 0 20px;
 }
 
-.picks {
+.points {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.point {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+.related {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 0.5px solid var(--border);
+}
+
+.reads {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.pick {
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 0.5px solid var(--border);
-}
-
-.pick:last-child {
-  padding-bottom: 0;
-  margin-bottom: 0;
-  border-bottom: none;
-}
-
-.pick-title {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.pick-author {
-  font-size: 12px;
-  color: var(--ink-faint);
+.read {
+  font-size: 13.5px;
+  line-height: 1.5;
   margin-bottom: 6px;
 }
 
-.pick-why {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
+.read-book {
+  font-weight: 700;
 }
 
-@media (max-width: 560px) {
-  .sheet {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
+.read-author {
+  color: var(--ink-faint);
+}
+
+.read-why {
+  color: var(--ink-soft);
+  font-style: italic;
 }

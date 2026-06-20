@@ -107,24 +107,32 @@ function Preview({ result }: { result: GlossResult }) {
       )}
 
       <div className="sheet">
-        <div className="column">
-          <h2 className="column-label">The idea</h2>
-          <p className="idea">{result.idea}</p>
-          {attribution && <p className="attribution">{attribution}</p>}
-        </div>
+        <h2 className="column-label">Summary</h2>
+        <p className="tldr">{result.tldr}</p>
+        {attribution && <p className="attribution">{attribution}</p>}
 
-        <div className="column">
-          <h2 className="column-label">From your shelf</h2>
-          <ul className="picks">
-            {result.picks.map((pick) => (
-              <li className="pick" key={pick.title}>
-                <div className="pick-title">{pick.title}</div>
-                <div className="pick-author">{pick.author}</div>
-                <p className="pick-why">{pick.why}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="points">
+          {result.keyPoints.map((point, i) => (
+            <li className="point" key={i}>
+              {point}
+            </li>
+          ))}
+        </ul>
+
+        {result.relatedReads.length > 0 && (
+          <div className="related">
+            <h2 className="column-label">Related reading</h2>
+            <ul className="reads">
+              {result.relatedReads.map((read) => (
+                <li className="read" key={read.title}>
+                  <span className="read-book">{read.title}</span>{" "}
+                  <span className="read-author">— {read.author}</span>
+                  <span className="read-why"> · {read.why}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

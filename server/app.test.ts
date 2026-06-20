@@ -5,9 +5,10 @@ import { GlossInputError, GlossParseError } from "../shared/gloss.ts";
 import type { GlossResult } from "../shared/types.ts";
 
 const result: GlossResult = {
-  idea: "Small reversible steps beat big rewrites.",
+  tldr: "Small reversible steps beat big rewrites.",
+  keyPoints: ["Big-bang rewrites usually fail.", "Ship small, reversible changes instead."],
   attribution: { handle: "@p", date: null, source: null },
-  picks: [{ title: "Refactoring", author: "Martin Fowler", why: "small safe steps" }],
+  relatedReads: [{ title: "Refactoring", author: "Martin Fowler", why: "small safe steps" }],
 };
 
 function appWith(runGloss: GlossRunner) {

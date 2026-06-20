@@ -3,33 +3,35 @@
 **Drop a link. Get a page worth printing.**
 
 A gloss is a marginal note — the kind readers have written in the borders of
-books for centuries. Gloss the app does the same job: you paste a tweet (or just
-the URL) and it produces a single print-ready page — the core idea on the left,
-matched reading from your own shelf on the right, with a written explanation of
-why each book fits _this_ thing, not just the topic in general.
+books for centuries. Gloss the app does the same job: you paste a post (a tweet,
+a thread, an article, or just the URL) and it produces a single print-ready page
+that **summarizes it** — a one-line TL;DR and the key points — so you can read
+the page instead of the post. If a book on your shelf genuinely speaks to the
+post, it shows up as a small "related reading" footer; never more than two, and
+only when it earns the spot.
 
-v1 is built for one specific reader: a developer / engineering leader who reads
-a lot of technical Twitter and owns the shelf in
-[`shared/readingList.ts`](shared/readingList.ts). Edit that file and rebuild to
-make it yours.
+The shelf in [`shared/readingList.ts`](shared/readingList.ts) is yours — a
+developer / engineering leader's reading list. Edit that file and rebuild to
+make the related-reads your own.
 
 ## How it works
 
-1. Paste tweet text and/or a URL. Pasted text is always the more reliable
-   signal; a URL alone triggers a web-search fallback.
-2. Your reading list is baked in — no login, no sync.
-3. Claude (`claude-sonnet-4-6`) extracts the idea, picks 3–4 books, and writes
-   the "why" for each, matched on situation rather than keyword.
-4. One click opens a clean, letter-size print sheet in a new tab.
+1. Paste post text and/or a URL. Pasted text is always the more reliable signal;
+   a URL alone triggers a web-search fallback.
+2. Claude (`claude-sonnet-4-6`) writes a one-line TL;DR plus 3–5 key points — the
+   substance of the post.
+3. Optionally, up to two related reads from the baked-in shelf, matched on
+   situation rather than keyword.
+4. One click opens a clean, single-page, letter-size print sheet in a new tab.
 
 ## Architecture
 
-| Path      | What it is                                                                                                                                                                       |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shared/` | Pure, dependency-light core: the reading list, prompt building, response parsing/validation, the deterministic fake, and the print-sheet HTML. Fully unit-tested.                |
-| `server/` | A small [Hono](https://hono.dev) API holding the API key. `POST /api/gloss` calls Anthropic (with `web_search` when a URL is given) and serves the built frontend in production. |
-| `src/`    | The React + Vite frontend: paste box, inline preview, print.                                                                                                                     |
-| `e2e/`    | Playwright end-to-end tests.                                                                                                                                                     |
+| Path      | What it is                                                                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/` | Pure, dependency-light core: the reading list, prompt building, response parsing/validation, the deterministic fake, and the print-sheet HTML. Fully unit-tested.                                 |
+| `server/` | A small [Hono](https://hono.dev) API holding the API key. `POST /api/gloss` calls Anthropic (with `web_search` when a URL is given) for the summary, and serves the built frontend in production. |
+| `src/`    | The React + Vite frontend: paste box, inline preview, print.                                                                                                                                      |
+| `e2e/`    | Playwright end-to-end tests.                                                                                                                                                                      |
 
 The browser never sees the API key — all Anthropic calls go through the server.
 

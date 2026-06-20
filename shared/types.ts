@@ -5,16 +5,16 @@ export interface Book {
   author: string;
   /**
    * Short situational notes describing when this book earns its place on the
-   * shelf. These steer matching on *situation*, not keyword.
+   * shelf. These steer the (secondary) related-reading match on situation.
    */
   themes: string[];
 }
 
 /** What the user pastes in. At least one of `text` / `url` must be present. */
 export interface GlossInput {
-  /** Pasted tweet / thread text. Always the more reliable signal. */
+  /** Pasted post / thread text. Always the more reliable signal. */
   text?: string;
-  /** A tweet (x.com) URL. Triggers a web-search fallback when text is sparse. */
+  /** A post (x.com) URL. Triggers a web-search fallback when text is sparse. */
   url?: string;
 }
 
@@ -25,18 +25,24 @@ export interface Attribution {
   source: string | null;
 }
 
-/** One matched book plus the written reason it fits *this* thing. */
-export interface Pick {
+/** A small, optional "related reading" note — one book, one line on why. */
+export interface RelatedRead {
   title: string;
   author: string;
-  /** The earned connection — why this book, for this idea, right now. */
+  /** A single short line on why it relates. Kept terse so the page stays one page. */
   why: string;
 }
 
-/** The print-ready result: the idea on the left, the picks on the right. */
+/**
+ * The print-ready result: a summary of the post is the point — a one-line TL;DR
+ * plus a few key points — with at most a couple of related reads as a footer.
+ */
 export interface GlossResult {
-  /** The core idea, distilled to a sentence or two. */
-  idea: string;
+  /** One sentence capturing the whole post. */
+  tldr: string;
+  /** The substance, as a few tight bullets. */
+  keyPoints: string[];
   attribution: Attribution;
-  picks: Pick[];
+  /** 0–2 books from the shelf, demoted to a small footer. */
+  relatedReads: RelatedRead[];
 }

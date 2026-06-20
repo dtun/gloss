@@ -8,12 +8,13 @@ const shelfTitles = new Set(READING_LIST.map((b) => b.title));
 describe("createGlossRunner (fake mode)", () => {
   const run = createGlossRunner({ fake: true });
 
-  it("produces a gloss from pasted text without a network call", async () => {
+  it("produces a summary from pasted text without a network call", async () => {
     const result = await run({ text: "Big rewrites fail; prefer small reversible steps." });
-    expect(result.idea).toContain("rewrites");
-    expect(result.picks.length).toBeGreaterThanOrEqual(3);
-    for (const pick of result.picks) {
-      expect(shelfTitles.has(pick.title)).toBe(true);
+    expect(result.tldr).toContain("rewrites");
+    expect(result.keyPoints.length).toBeGreaterThanOrEqual(1);
+    expect(result.relatedReads.length).toBeLessThanOrEqual(2);
+    for (const read of result.relatedReads) {
+      expect(shelfTitles.has(read.title)).toBe(true);
     }
   });
 
