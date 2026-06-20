@@ -27,7 +27,14 @@ export default tseslint.config(
   },
   // Server + shared + tooling (node)
   {
-    files: ["server/**/*.ts", "shared/**/*.ts", "*.config.ts", "*.config.js", "e2e/**/*.ts"],
+    files: [
+      "server/**/*.ts",
+      "shared/**/*.ts",
+      "worker/**/*.ts",
+      "*.config.ts",
+      "*.config.js",
+      "e2e/**/*.ts",
+    ],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,

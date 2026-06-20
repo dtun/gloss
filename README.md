@@ -68,6 +68,30 @@ npm run check         # typecheck + lint + format + unit tests
 The e2e suite boots the real production server with `GLOSS_FAKE_LLM=1`, so it is
 deterministic and needs no API key.
 
+## Deployment
+
+Gloss deploys to **Cloudflare Workers** on every push to `main` — but only when
+the full CI gate (typecheck, lint, format, unit tests, build, e2e) is green. A
+red check blocks the deploy. The same [Hono](https://hono.dev) app that the Node
+server runs is served by the Worker ([`worker/index.ts`](worker/index.ts)):
+`/api/*` hits the app, everything else is a static asset. The browser never sees
+the API key — it lives only as a Worker secret.
+
+**One-time setup (repo secrets):** add these under
+_Settings → Secrets and variables → Actions_ — never commit them.
+
+| Secret                 | Where to get it                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → _Edit Cloudflare Workers_ template |
+| `ANTHROPIC_API_KEY`    | https://console.anthropic.com/ — uploaded to the Worker as a secret on each deploy  |
+
+If your Cloudflare token can access more than one account, also set
+`CLOUDFLARE_ACCOUNT_ID` (or add `account_id` to `wrangler.jsonc`).
+
+Then every push to `main` deploys to `https://gloss.<your-subdomain>.workers.dev`.
+To deploy from your machine instead: `npm run deploy` (after
+`wrangler secret put ANTHROPIC_API_KEY`).
+
 ## Adding to the shelf
 
 Edit [`shared/readingList.ts`](shared/readingList.ts). Each book has a `title`,

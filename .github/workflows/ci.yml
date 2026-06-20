@@ -50,3 +50,32 @@ jobs:
 
       - name: Run e2e tests
         run: npm run test:e2e
+
+  # Deploys only when the full gate is green, and only on a push to main.
+  # A red check or e2e run blocks the deploy.
+  deploy:
+    needs: [check, e2e]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Uploads ANTHROPIC_API_KEY as a Worker secret from the repo secret.
+          secrets: |
+            ANTHROPIC_API_KEY
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

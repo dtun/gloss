@@ -13,6 +13,8 @@
     "dev:api": "tsx watch server/index.ts",
     "build": "vite build",
     "start": "tsx server/index.ts",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:dev": "npm run build && wrangler dev",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -31,6 +33,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260620.1",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.61.0",
     "@types/node": "^22.20.0",
@@ -47,6 +50,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.61.1",
     "vite": "^8.0.16",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "wrangler": "^4.103.0"
   }
 }
