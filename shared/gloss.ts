@@ -6,6 +6,8 @@ export const MODEL = "claude-sonnet-4-6";
 
 export class GlossInputError extends Error {}
 export class GlossParseError extends Error {}
+/** The model/tool call couldn't complete in time (usually a slow URL fetch). */
+export class GlossUnavailableError extends Error {}
 
 /** Throw if neither text nor a URL was supplied. */
 export function normalizeInput(input: GlossInput): GlossInput {

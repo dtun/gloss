@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { GlossInputError, GlossParseError } from "../shared/gloss.ts";
+import { GlossInputError, GlossParseError, GlossUnavailableError } from "../shared/gloss.ts";
 import type { GlossRunner } from "./anthropic.ts";
 
 export interface AppDeps {
@@ -37,6 +37,9 @@ export function createApp({ runGloss }: AppDeps): Hono {
     } catch (err) {
       if (err instanceof GlossInputError) {
         return c.json({ error: err.message }, 400);
+      }
+      if (err instanceof GlossUnavailableError) {
+        return c.json({ error: err.message }, 504);
       }
       if (err instanceof GlossParseError) {
         return c.json({ error: "Couldn't read a clean result back. Try again." }, 502);

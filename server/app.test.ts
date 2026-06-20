@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "./app.ts";
 import type { GlossRunner } from "./anthropic.ts";
-import { GlossInputError, GlossParseError } from "../shared/gloss.ts";
+import { GlossInputError, GlossParseError, GlossUnavailableError } from "../shared/gloss.ts";
 import type { GlossResult } from "../shared/types.ts";
 
 const result: GlossResult = {
@@ -70,6 +70,20 @@ describe("POST /api/gloss", () => {
     });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "paste something" });
+  });
+
+  it("maps an unavailable (timeout) error to 504 with its message", async () => {
+    const runGloss = vi
+      .fn<GlossRunner>()
+      .mockRejectedValue(new GlossUnavailableError("Couldn't read that link in time."));
+    const app = appWith(runGloss);
+    const res = await app.request("/api/gloss", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: "https://x.com/a/article/1" }),
+    });
+    expect(res.status).toBe(504);
+    expect(await res.json()).toEqual({ error: "Couldn't read that link in time." });
   });
 
   it("maps a parse error to 502", async () => {

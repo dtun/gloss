@@ -67,7 +67,7 @@ export function App() {
         </label>
 
         <button className="generate" type="submit" disabled={!canSubmit}>
-          {status === "loading" ? "Reading the shelf…" : "Gloss it"}
+          {status === "loading" ? "Summarizing…" : "Gloss it"}
         </button>
       </form>
 

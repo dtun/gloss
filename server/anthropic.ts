@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
+  GlossUnavailableError,
   MODEL,
   buildSystemPrompt,
   buildUserPrompt,
@@ -9,6 +10,13 @@ import {
 import { fakeGloss } from "../shared/fake.ts";
 import { READING_LIST } from "../shared/readingList.ts";
 import type { GlossInput, GlossResult } from "../shared/types.ts";
+
+/**
+ * Hard ceiling on a single gloss request (ms). Kept under hosting request
+ * limits so a slow URL fetch fails fast with a helpful message instead of
+ * hanging — web search on auth-walled URLs can otherwise spiral.
+ */
+const REQUEST_TIMEOUT_MS = 45_000;
 
 /** A function that turns an input into a finished gloss. Injected into the app. */
 export type GlossRunner = (input: GlossInput) => Promise<GlossResult>;
@@ -31,7 +39,11 @@ export function createGlossRunner(config: GlossConfig): GlossRunner {
     const normalized = normalizeInput(input);
     if (config.fake) return fakeGloss(normalized);
 
-    const client = new Anthropic({ apiKey: config.apiKey });
+    const client = new Anthropic({
+      apiKey: config.apiKey,
+      timeout: REQUEST_TIMEOUT_MS,
+      maxRetries: 0,
+    });
     const system = buildSystemPrompt(READING_LIST);
     const tools = normalized.url
       ? [{ type: "web_search_20260209" as const, name: "web_search" as const, max_uses: 3 }]
@@ -41,26 +53,30 @@ export function createGlossRunner(config: GlossConfig): GlossRunner {
       { role: "user", content: buildUserPrompt(normalized) },
     ];
 
-    let response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2048,
-      system,
-      tools,
-      messages,
-    });
+    const create = () =>
+      client.messages.create({ model: MODEL, max_tokens: 2048, system, tools, messages });
 
-    // Server-side tools may pause after the iteration cap; resume until done.
-    let guard = 0;
-    while (response.stop_reason === "pause_turn" && guard < 5) {
-      guard += 1;
-      messages.push({ role: "assistant", content: response.content });
-      response = await client.messages.create({
-        model: MODEL,
-        max_tokens: 2048,
-        system,
-        tools,
-        messages,
-      });
+    let response: Anthropic.Message;
+    try {
+      response = await create();
+
+      // Server-side tools may pause after the iteration cap; resume until done.
+      let guard = 0;
+      while (response.stop_reason === "pause_turn" && guard < 3) {
+        guard += 1;
+        messages.push({ role: "assistant", content: response.content });
+        response = await create();
+      }
+    } catch (err) {
+      if (
+        err instanceof Anthropic.APIConnectionTimeoutError ||
+        err instanceof Anthropic.APIConnectionError
+      ) {
+        throw new GlossUnavailableError(
+          "Couldn't read that link in time — paste the post's text for a reliable summary.",
+        );
+      }
+      throw err;
     }
 
     if (response.stop_reason === "refusal") {
